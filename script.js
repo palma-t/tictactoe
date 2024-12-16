@@ -1,130 +1,144 @@
 function Gameboard() {
-    const rows = 3;
-    const columns = 3;
-    const board = [];
-
-    for (let i = 0; i < rows; i++) {
-        board[i] = [];
-        for (let j = 0; j < columns; j++) {
-          board[i] = [];
-        }
-      }
-
-    board[0][0] = 1;
-    board[0][1] = 2;
-    board[0][2] = 3;
-    board[1][0] = 4;
-    board[1][1] = 5;
-    board[1][2] = 6;
-    board[2][0] = 7;
-    board[2][1] = 8;
-    board[2][2] = 9;
+    const board = Array(3).fill(null).map(() => Array(3).fill(null));
 
     const getBoard = () => board;
 
-    const printBoard = () => {
-        console.log(board);
-      };
+    const makeMove = (row, col, marker) => {
+        if (board[row][col] === null) {
+            board[row][col] = marker;
+            return true;
+        }
+        return false;
+    }
 
-    return { getBoard, printBoard };
-}
+    const reset = () => {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                board[i][j] = null;
+            }
+        }
+    };
+
+    return { getBoard, makeMove, reset };
+};
 
 
-const GameController = (function(playerOneName = "Player One", playerTwoName = "Player Two") {
-    const board = Gameboard();
+const GameController = (function() {
 
     const players = [
         {
-            name: playerOneName,
+            name: "Player 1",
             token: "X",
-            playerCombinations: []
         },
         {
-            name: playerTwoName,
+            name: "Player 2",
             token: "O",
-            playerCombinations: []
         }
     ];
 
     const winningCombinations = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [1, 4, 7],
-        [2, 5, 8],
-        [3, 6, 9],
-        [1, 5, 9],
-        [3, 5, 7],
+        [[0, 0], [0, 1], [0, 2]], // Rows
+        [[1, 0], [1, 1], [1, 2]],
+        [[2, 0], [2, 1], [2, 2]],
+        [[0, 0], [1, 0], [2, 0]], // Columns
+        [[0, 1], [1, 1], [2, 1]],
+        [[0, 2], [1, 2], [2, 2]],
+        [[0, 0], [1, 1], [2, 2]], // Diagonals
+        [[0, 2], [1, 1], [2, 0]],
     ];
 
-    let activePlayer = players[0];
+    let activePlayerIndex = 0;
 
-    const switchPlayerTurn = () => {
-        activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    const switchPlayer = () => {
+        activePlayerIndex = activePlayerIndex === 0 ? 1 : 0;
     };
 
-    const getActivePlayer = () => activePlayer;
-
-    const printNewRound = () => {
-        board.printBoard();
-        console.log(`${getActivePlayer().name}'s turn`);
-    };
-
-    const fillArray = (array) => {
-        for (let cell of array){
-            cell.addEventListener("click", () => {
-                //check if cell is free
-                if(cell != "X" && cell != "O"){
-                    getActivePlayer.playerCombinations.push(cell);
-                    cell = getActivePlayer.token;
-                } else {
-                    console.log("Choose an empty cell, you cheater!")
-                };
-            });
-        }
-    }
-
-    const checkForWin = (whichPlayer) => {
-        for (let i = 0; i < winningCombinations.length; i++) {
-            for (var j = 0; j < winningCombinations[i].length; j++) {
-                //console.log(winConditions[i][j]);
-                //console.log(whichPlayer);
-                if (whichPlayer.includes(winningCombinations[i][0]) 
-                    && whichPlayer.includes(winningCombinations[i][1]) 
-                    && whichPlayer.includes(winConditions[i][2]) 
-                    && whichPlayer.length >= 3) {
-                    return true;
-                } else if (!whichPlayer.includes(winningCombinations[i][0]) 
-                    && whichPlayer.includes(winningCombinations[i][1]) 
-                    && whichPlayer.includes(winningCombinations[i][2]) 
-                    && whichPlayer.length >= 3) {
-                    break;
-                } else {
-                    false;
-                }
+    const checkWin = (board) => {
+        for( let combo of winningCombinations) {
+            if(
+                combo.every(
+                    ([row, col]) => board[row][col] === players[activePlayerIndex].token
+                )
+            ) {
+                return true
             }
         }
+        return false;
     }
 
-    const playRound = () => {
+    const getActivePlayer = () => players[activePlayerIndex];
 
-        //The player's array takes the number of the cell
-        // the cell takes the token of the player 
-        fillArray(board);
+    return { switchPlayer, checkWin, getActivePlayer };
+})();
 
-        //check for winner
-        if(checkForWin(activePlayer)){
-            return `${getActivePlayer().name} wins!`
-        }
-        else{
-            //switch player turn
-            switchPlayerTurn();
-            printNewRound()
-        };
+const ScreenController = (function() {
+   // const game = GameController();
+
+    const playerTurnDiv = document.querySelector(".turn");
+    const boardDiv = document.querySelector(".board");
+
+    const renderBoard = (board) => {
+        //pas un problème d'utiliser innnerHTML ?
+        boardDiv.innerHTML = "";
+        board.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+            const cellButton = document.createElement("button");
+            cellButton.classList.add("cell");
+            cellButton.textContent = cell || "";
+            cellButton.dataset.row = rowIndex;
+            cellButton.dataset.col = colIndex;
+            boardDiv.appendChild(cellButton);
+            });
+        });
+    }
+
+    const updateTurnDisplay = (player) => {
+        playerTurnDiv.textContent = `${player.name}'s turn (${player.token})`;
     };
 
-    printNewRound();
+    const setupEventListeners = (gameboard, gameController) => {
+        boardDiv.addEventListener("click", (e) => {
+            const row = e.target.dataset.row;
+            const col = e.target.dataset.col;
 
-    return { playRound, getActivePlayer };
+            if(row === undefined || col === undefined) return; //not a cell
 
+            const activePlayer = gameController.getActivePlayer();
+
+            if (gameboard.makeMove(row, col, activePlayer.token)){
+                renderBoard(gameboard.getBoard());
+
+                if (gameController.checkWin(gameboard.getBoard())) {
+                    playerTurnDiv.textContent = `${activePlayer.name} wins!`;
+                    boardDiv.innerHTML = "";
+                    return;
+                }
+                
+                gameController.switchPlayer();
+                updateTurnDisplay(gameController.getActivePlayer());
+            };
+        });
+    }
+
+        const startGame = () => {
+            const gameboard = Gameboard();
+            const gameController = GameController;
+
+            renderBoard(gameboard.getBoard());
+            updateTurnDisplay(gameController.getActivePlayer());
+            setupEventListeners(gameboard, gameController);
+        }
+
+        return { startGame };
 })();
+
+ScreenController.startGame();
+
+
+
+
+/* missing
+dealing with rounds
+reset button
+changing the design!
+*/
