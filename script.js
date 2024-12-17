@@ -6,6 +6,7 @@ const Gameboard = (function() {
     const makeMove = (row, col, marker) => {
         if (board[row][col] === null) {
             board[row][col] = marker;
+            console.log("make move")
             return true;
         }
         return false;
@@ -138,12 +139,15 @@ const ScreenController = (function() {
                         boardDiv.innerHTML = "";
                         return;
                     }
-                    
-                    renderScore(gameController.getPlayers());
+
                     gameController.switchPlayer();
-                    updateTurnDisplay(gameController.getActivePlayer());
                     Gameboard.resetBoard();
+                    console.log("reset board")
                     renderBoard(gameboard.getBoard());
+                    console.log("juste one win")
+                    renderScore(gameController.getPlayers());
+                    updateTurnDisplay(gameController.getActivePlayer());
+                    return;
 
                 } else {
 
@@ -157,15 +161,15 @@ const ScreenController = (function() {
                             gameController.switchPlayer();
                             updateTurnDisplay(gameController.getActivePlayer());
                         }, 2000);
+                        console.log('draaw')
                         return;
                     }
 
+                    console.log("ni draw ni coup gagnant")
                     renderBoard(gameboard.getBoard());
                     gameController.switchPlayer();
                     updateTurnDisplay(gameController.getActivePlayer());
                 }
-
-                renderScore(gameController.getPlayers());
             };
         });
     }
@@ -184,10 +188,7 @@ const ScreenController = (function() {
         return { startGame };
 })();
 
-
-
 ScreenController.startGame();
 
-/* missing
-dealing with rounds
-*/
+/* problem: a make move happening when should not / transferred
+OR board not resetting correctly :( */
