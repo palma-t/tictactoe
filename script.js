@@ -1,4 +1,4 @@
-function Gameboard() {
+const Gameboard = (function() {
     const board = Array(3).fill(null).map(() => Array(3).fill(null));
 
     const getBoard = () => board;
@@ -20,7 +20,7 @@ function Gameboard() {
     };
 
     return { getBoard, makeMove, reset };
-};
+})();
 
 
 const GameController = (function() {
@@ -66,19 +66,26 @@ const GameController = (function() {
         return false;
     }
 
+    const resetGame = () => {
+        const resetButton = document.querySelector(".reset");
+        resetButton.addEventListener("click", () => {
+            Gameboard.reset();
+            activePlayerIndex = 0;
+            ScreenController.startGame();
+        })
+    
+    };
+
     const getActivePlayer = () => players[activePlayerIndex];
 
-    return { switchPlayer, checkWin, getActivePlayer };
+    return { switchPlayer, checkWin, resetGame, getActivePlayer };
 })();
 
 const ScreenController = (function() {
-   // const game = GameController();
-
     const playerTurnDiv = document.querySelector(".turn");
     const boardDiv = document.querySelector(".board");
 
     const renderBoard = (board) => {
-        //pas un problème d'utiliser innnerHTML ?
         boardDiv.innerHTML = "";
         board.forEach((row, rowIndex) => {
             row.forEach((cell, colIndex) => {
@@ -121,24 +128,22 @@ const ScreenController = (function() {
     }
 
         const startGame = () => {
-            const gameboard = Gameboard();
+            const gameboard = Gameboard;
             const gameController = GameController;
 
             renderBoard(gameboard.getBoard());
             updateTurnDisplay(gameController.getActivePlayer());
+            gameController.resetGame();
             setupEventListeners(gameboard, gameController);
         }
 
         return { startGame };
 })();
 
+
+
 ScreenController.startGame();
-
-
-
 
 /* missing
 dealing with rounds
-reset button
-changing the design!
 */
