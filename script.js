@@ -11,7 +11,7 @@ const Gameboard = (function() {
         return false;
     }
 
-    const reset = () => {
+    const resetBoard = () => {
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 board[i][j] = null;
@@ -19,7 +19,7 @@ const Gameboard = (function() {
         }
     };
 
-    return { getBoard, makeMove, reset };
+    return { getBoard, makeMove, resetBoard };
 })();
 
 
@@ -29,10 +29,12 @@ const GameController = (function() {
         {
             name: "Player 1",
             token: "X",
+            rounds: 0,
         },
         {
             name: "Player 2",
             token: "O",
+            rounds: 0,
         }
     ];
 
@@ -66,24 +68,31 @@ const GameController = (function() {
         return false;
     }
 
+    const resetScore = (players) => {
+        players[0].rounds = 0;
+        players[1].rounds = 0;
+    }
+
+    const getPlayers = () => players;
+
     const resetGame = () => {
-        const resetButton = document.querySelector(".reset");
-        resetButton.addEventListener("click", () => {
-            Gameboard.reset();
-            activePlayerIndex = 0;
-            ScreenController.startGame();
-        })
-    
+        Gameboard.resetBoard();
+        activePlayerIndex = 0;
+        GameController.resetScore(GameController.getPlayers());
+        ScreenController.startGame();
     };
 
     const getActivePlayer = () => players[activePlayerIndex];
 
-    return { switchPlayer, checkWin, resetGame, getActivePlayer };
+    return { switchPlayer, checkWin, resetScore, resetGame, getActivePlayer, getPlayers };
 })();
 
 const ScreenController = (function() {
     const playerTurnDiv = document.querySelector(".turn");
+    const roundDiv = document.querySelector(".rounds");
     const boardDiv = document.querySelector(".board");
+    const resetButton = document.querySelector(".reset");
+
 
     const renderBoard = (board) => {
         boardDiv.innerHTML = "";
@@ -99,6 +108,11 @@ const ScreenController = (function() {
         });
     }
 
+    const renderScore = (players) => {
+        roundDiv.textContent = `${players[0].name}: ${players[0].rounds} 
+        / ${players[1].name}: ${players[1].rounds}`
+    }
+
     const updateTurnDisplay = (player) => {
         playerTurnDiv.textContent = `${player.name}'s turn (${player.token})`;
     };
@@ -108,21 +122,50 @@ const ScreenController = (function() {
             const row = e.target.dataset.row;
             const col = e.target.dataset.col;
 
-            if(row === undefined || col === undefined) return; //not a cell
+            if(row === undefined || col === undefined) return;
 
             const activePlayer = gameController.getActivePlayer();
 
             if (gameboard.makeMove(row, col, activePlayer.token)){
-                renderBoard(gameboard.getBoard());
 
                 if (gameController.checkWin(gameboard.getBoard())) {
-                    playerTurnDiv.textContent = `${activePlayer.name} wins!`;
-                    boardDiv.innerHTML = "";
-                    return;
+                    activePlayer.rounds++;
+                    console.log(activePlayer.rounds);
+
+                    if (activePlayer.rounds === 3) {
+                        renderScore(gameController.getPlayers());
+                        playerTurnDiv.textContent = `${activePlayer.name} wins!`;
+                        boardDiv.innerHTML = "";
+                        return;
+                    }
+                    
+                    renderScore(gameController.getPlayers());
+                    gameController.switchPlayer();
+                    updateTurnDisplay(gameController.getActivePlayer());
+                    Gameboard.resetBoard();
+                    renderBoard(gameboard.getBoard());
+
+                } else {
+
+                    const isDraw = (board) => board.flat().every(cell => cell !== null);
+
+                    if (isDraw(gameboard.getBoard())) {
+                        playerTurnDiv.textContent = `It's a draw!`;
+                        setTimeout(() => {
+                            Gameboard.resetBoard();
+                            renderBoard(gameboard.getBoard());
+                            gameController.switchPlayer();
+                            updateTurnDisplay(gameController.getActivePlayer());
+                        }, 2000);
+                        return;
+                    }
+
+                    renderBoard(gameboard.getBoard());
+                    gameController.switchPlayer();
+                    updateTurnDisplay(gameController.getActivePlayer());
                 }
-                
-                gameController.switchPlayer();
-                updateTurnDisplay(gameController.getActivePlayer());
+
+                renderScore(gameController.getPlayers());
             };
         });
     }
@@ -133,7 +176,8 @@ const ScreenController = (function() {
 
             renderBoard(gameboard.getBoard());
             updateTurnDisplay(gameController.getActivePlayer());
-            gameController.resetGame();
+            renderScore(GameController.getPlayers());
+            resetButton.addEventListener("click", gameController.resetGame);
             setupEventListeners(gameboard, gameController);
         }
 
