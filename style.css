@@ -1,5 +1,6 @@
 *{
     font-family: 'Cambria', serif;
+    background-color: rgb(232, 238, 243);
 }
 
 .container {
@@ -9,8 +10,23 @@
     align-items: center;
 }
 
-h1, h2 {
+h1 {
+    color: rgb(157, 0, 255);
+    margin-bottom: 15px;
+} 
+
+h2, .rounds {
     color: rgb(91, 90, 90);
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+.rounds {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
 }
 
 .board {
@@ -23,7 +39,7 @@ h1, h2 {
     border-radius: 15px;
     gap: 2px;
     padding: 2px;
-    background-color: rgb(255, 111, 0);
+    background-color: rgb(157, 0, 255);
     box-shadow: 2px 2px 5px rgb(194, 194, 194);
   }
   
@@ -43,19 +59,19 @@ h1, h2 {
 
 .reset {
     margin: 20px;
-    padding: 5px 10px;
+    padding: 5px 20px;
     font-size: 1rem;
     text-transform: uppercase;
     font-weight: 600;
     font-family: inherit;
-    border-radius: 15px;
+    border-radius: 10px;
     background-color: rgb(209, 236, 244);
-    border: 1px solid rgb(255, 111, 0);
+    border: 1px solid rgb(157, 0, 255);
 }
 
 .reset:hover {
     cursor: pointer;
     color: white;
-    background-color: rgb(255, 111, 0);;
+    background-color: rgb(157, 0, 255);
     border: 1px solid rgb(209, 236, 244);
 }
